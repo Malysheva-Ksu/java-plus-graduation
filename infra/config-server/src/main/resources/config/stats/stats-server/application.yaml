@@ -20,10 +20,6 @@ spring:
         show_sql: true
         format_sql: true
 
-  liquibase:
-    enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-
 server:
   port: 0
 
@@ -36,4 +32,3 @@ logging:
     org.hibernate.sql: DEBUG
     org.hibernate.type: TRACE
     org.hibernate.orm.jdbc.bind: TRACE
-    liquibase: DEBUG
