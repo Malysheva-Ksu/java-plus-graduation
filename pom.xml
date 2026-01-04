@@ -6,16 +6,16 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
+		<version>3.3.0</version>
 		<relativePath/>
 	</parent>
 
 	<name>Explore With Me</name>
 	<modules>
-		<module>core</module>
+		<module>stats</module>
 		<module>infra</module>
-        <module>stats</module>
-    </modules>
+		<module>core</module>
+	</modules>
 
 	<groupId>ru.practicum</groupId>
 	<artifactId>explore-with-me</artifactId>
@@ -24,13 +24,27 @@
 
 	<properties>
 		<java.version>21</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+		<springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>
+		<spring.boot.version>3.3.4</spring.boot.version>
+		<spring.cloud.version>2023.0.3</spring.cloud.version>
 		<spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+		<maprstruct.version>1.6.2</maprstruct.version>
+		<querydsl.version>5.1.0</querydsl.version>
+		<stats-client.version>0.0.1-SNAPSHOT</stats-client.version>
+		<stats-dto.version>0.0.1-SNAPSHOT</stats-dto.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring.boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
@@ -38,9 +52,34 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.mapstruct</groupId>
+				<artifactId>mapstruct</artifactId>
+				<version>${maprstruct.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mapstruct</groupId>
+				<artifactId>mapstruct-processor</artifactId>
+				<version>${maprstruct.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.querydsl</groupId>
+				<artifactId>querydsl-jpa</artifactId>
+				<classifier>jakarta</classifier>
+				<version>${querydsl.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ru.practicum</groupId>
+				<artifactId>stats-client</artifactId>
+				<version>${stats-client.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ru.practicum</groupId>
+				<artifactId>stats-dto</artifactId>
+				<version>${stats-dto.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
 	<build>
 		<pluginManagement>
 			<plugins>

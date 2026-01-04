@@ -1,14 +1,39 @@
 services:
-  stats-server:
-    ports:
-      - "9090:9090"
 
-  stats-db:
+  db:
     image: postgres:16.1
-
-  ewm-service:
+    container_name: explore-with-me-db
     ports:
-      - "8080:8080"
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    profiles: [ "main" ]
 
-  ewm-db:
-    image: postgres:16.1
+  discovery-server:
+    image: discovery-server:latest
+    build:
+      context: ./infra/discovery-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+      - "5005:5005"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      JAVA_OPTS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 
+        -Duser.timezone=Europe/Moscow
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    profiles: ["main"]
