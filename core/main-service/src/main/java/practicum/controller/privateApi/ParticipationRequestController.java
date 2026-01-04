@@ -17,14 +17,13 @@ import java.util.Collection;
 public class ParticipationRequestController {
     private final ParticipationRequestService requestService;
 
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto createRequest(
             @PathVariable Long userId,
             @RequestParam Long eventId
     ) {
-        log.info("Creating request for user id {} with event id {}", userId, eventId);
+        log.info("PRIVATE-API: Создание запроса на участие. UserID={}, EventID={}", userId, eventId);
         return requestService.createRequest(userId, eventId);
     }
 
@@ -32,7 +31,7 @@ public class ParticipationRequestController {
     public Collection<ParticipationRequestDto> getUserRequests(
             @PathVariable Long userId
     ) {
-        log.info("Getting requests for user id {}", userId);
+        log.info("PRIVATE-API: Получение заявок пользователя ID={}", userId);
         return requestService.getUserRequests(userId);
     }
 
@@ -40,7 +39,7 @@ public class ParticipationRequestController {
     public ResponseEntity<ParticipationRequestDto> cancelRequest(
             @PathVariable Long userId,
             @PathVariable Long requestId) {
-        log.info("Пользователь ID={} отменяет заявку ID={}", userId, requestId);
+        log.info("PRIVATE-API: Отмена заявки ID={} пользователем ID={}", requestId, userId);
         ParticipationRequestDto canceledRequest = requestService.cancelRequest(userId, requestId);
         return ResponseEntity.ok(canceledRequest);
     }
