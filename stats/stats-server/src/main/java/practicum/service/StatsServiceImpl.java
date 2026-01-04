@@ -3,8 +3,6 @@ package practicum.service;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,12 +21,9 @@ public class StatsServiceImpl implements StatsService {
     private static final Logger log = LoggerFactory.getLogger(StatsServiceImpl.class);
 
     private final StatsRepository statsRepository;
-    private final CircuitBreakerFactory circuitBreakerFactory;
 
-    public StatsServiceImpl(StatsRepository statsRepository,
-                            CircuitBreakerFactory circuitBreakerFactory) {
+    public StatsServiceImpl(StatsRepository statsRepository) {
         this.statsRepository = statsRepository;
-        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     @Override
@@ -37,19 +32,7 @@ public class StatsServiceImpl implements StatsService {
 
         Hit hit = HitMapper.toHit(hitDto);
 
-        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("statsDatabase");
-
-        Hit savedHit = circuitBreaker.run(() -> {
-
-            return statsRepository.save(hit);
-
-        }, throwable -> {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Внутренняя ошибка сервиса: не удалось сохранить запись в базу данных.",
-                    throwable
-            );
-        });
+        Hit savedHit =  statsRepository.save(hit);
 
         return HitMapper.toHitDto(savedHit);
     }
@@ -64,31 +47,20 @@ public class StatsServiceImpl implements StatsService {
             );
         }
 
-        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("statsDatabase");
         boolean isUriFilterActive = uris != null && !uris.isEmpty();
 
-        List<ViewStatsDto> stats = circuitBreaker.run(() -> {
+        List<ViewStatsDto> stats;
 
             if (unique) {
-                return isUriFilterActive ?
+                stats = isUriFilterActive ?
                         statsRepository.getStatsUniqueIpForUris(start, end, uris) :
                         statsRepository.getStatsUniqueIp(start, end);
             } else {
-                return isUriFilterActive ?
+                stats = isUriFilterActive ?
                         statsRepository.getStatsAllForUris(start, end, uris) :
                         statsRepository.getStatsAll(start, end);
             }
 
-        }, throwable -> {
-                    throwable.getMessage();
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Сервис временно недоступен: невозможно получить данные статистики из БД.",
-                    throwable
-            );
-        });
-
-        log.info("Статистика успешно получена. Найдено записей: {}", stats.size());
         return stats;
     }
 }
