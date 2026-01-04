@@ -47,11 +47,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- liquibase -->
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
