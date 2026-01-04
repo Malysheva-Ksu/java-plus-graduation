@@ -1,6 +1,5 @@
 package practicum;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +20,5 @@ public class HitDto {
     private String uri;
     private String ip;
 
-    @JsonProperty(value = "timestamp")
     private LocalDateTime timeStamp;
 }
