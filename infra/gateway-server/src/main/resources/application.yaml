@@ -1,0 +1,44 @@
+server:
+    port: 8080
+
+spring:
+    application:
+        name: gateway-server
+    config:
+        import: "optional:configserver:"
+    cloud:
+        config:
+            discovery:
+                enabled: true
+                serviceId: config-server
+            fail-fast: false
+        gateway:
+            discovery:
+                locator:
+                    enabled: true
+            routes:
+                - id: stats_server_route
+                  uri: lb://stats-server
+                  predicates:
+                      - Path=/hit, /stats
+
+                - id: main_service_route
+                  uri: lb://main-service
+                  predicates:
+                      - Path=/admin/**, /users/**, /events/**, /categories/**, /compilations/**, /requests/**
+
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: http://localhost:8761/eureka/
+    instance:
+        preferIpAddress: true
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,gateway,info,metrics,prometheus
+    endpoint:
+        health:
+            show-details: always

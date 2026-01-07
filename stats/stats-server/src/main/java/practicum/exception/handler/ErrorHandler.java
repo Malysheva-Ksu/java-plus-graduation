@@ -1,0 +1,54 @@
+package practicum.exception.handler;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import practicum.exception.ErrorResponse;
+import practicum.exception.ValidationException;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+@RestControllerAdvice
+@Slf4j
+public class ErrorHandler {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler
+    public ErrorResponse handleException(final Exception e) {
+        logError(e);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ErrorResponse.builder(status.value(), status.getReasonPhrase())
+                .message(e.getMessage())
+                .stackTrace(getStackTrace(e))
+                .build();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler
+    public ErrorResponse validationHandler(final ValidationException e) {
+        logError(e);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ErrorResponse.builder(status.value(), status.getReasonPhrase())
+                .message(e.getMessage())
+                .stackTrace(getStackTrace(e))
+                .build();
+    }
+
+    private void logError(Exception e) {
+        String template = """
+            \n================================================= ERROR ==================================================
+            Message: {}
+            Exception type: {}
+            """;
+
+        log.error(template, e.getMessage(), e.getClass().getName(), e);
+    }
+
+    private String getStackTrace(final Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+}
