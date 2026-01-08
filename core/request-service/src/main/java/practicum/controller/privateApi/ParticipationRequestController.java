@@ -21,9 +21,8 @@ public class ParticipationRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto createRequest(
             @PathVariable Long userId,
-            @RequestParam Long eventId
-    ) {
-        log.info("PRIVATE-API: Создание запроса на участие. UserID={}, EventID={}", userId, eventId);
+            @RequestParam Long eventId) {
+        log.info("PRIVATE-API: Создание запроса. UserID={}, EventID={}", userId, eventId);
         return requestService.createRequest(userId, eventId);
     }
 

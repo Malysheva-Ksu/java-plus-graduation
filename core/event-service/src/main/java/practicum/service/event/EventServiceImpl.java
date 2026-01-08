@@ -51,6 +51,7 @@ public class EventServiceImpl implements EventService {
     @Value("${app.name:ewm-main-service}")
     private String appName;
 
+    private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final UserClient userClient;
     private final CategoryRepository categoryRepository;
@@ -77,13 +78,14 @@ public class EventServiceImpl implements EventService {
                 .email(initiatorDto.getEmail())
                 .build();
 
+        initiator = userRepository.save(initiator);
+
         Category category = categoryRepository.findById(newEventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(
                         "Указанная категория с id=" + newEventDto.getCategory() + " не найдена.")
                 );
 
         Location location = resolveLocation(newEventDto.getLocation());
-
         Event event = EventMapper.toEvent(newEventDto, category, initiator, location);
 
         Event saved = eventRepository.save(event);
