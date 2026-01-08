@@ -9,7 +9,6 @@ import practicum.client.UserClient;
 import practicum.exception.ConflictException;
 import practicum.exception.NotFoundException;
 import practicum.mapper.ParticipationRequestMapper;
-import practicum.mapper.UserMapper;
 import practicum.model.Event;
 import practicum.model.ParticipationRequest;
 import practicum.model.User;
@@ -45,12 +44,24 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         log.info("Пользователь id={} создаёт запрос на участие в событии id={}", userId, eventId);
 
-        UserDto userDto = userClient.getUser(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-        User requester = userRepository.save(UserMapper.toUser(userDto));
+        User requester = userRepository.findById(userId).orElseGet(() -> {
+            UserDto userDto = userClient.getUser(userId)
+                    .orElseThrow(() -> new NotFoundException("User with id=" + userId + " not found"));
+
+            User newUser = User.builder()
+                    .id(userDto.getId())
+                    .name(userDto.getName())
+                    .email(userDto.getEmail())
+                    .build();
+            return userRepository.save(newUser);
+        });
 
         EventFullDto eventDto = loadEvent(eventId);
-        Event eventRef = eventRepository.save(toEventRef(eventDto));
+        Event eventRef = eventRepository.findById(eventId).orElseGet(() -> {
+            Event newEvent = new Event();
+            newEvent.setId(eventDto.getId());
+            return eventRepository.save(newEvent);
+        });
 
         validateRequestCreation(userId, eventDto);
 
