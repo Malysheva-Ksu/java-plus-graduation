@@ -1,15 +1,14 @@
 package practicum.repository;
 
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import practicum.model.Event;
 import practicum.model.ParticipationRequest;
+import practicum.model.User;
 import practicum.model.enums.RequestStatus;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
     Optional<ParticipationRequest> findByEventIdAndRequesterId(Long eventId, Long requesterId);
@@ -30,7 +29,7 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
 
     List<ParticipationRequest> findAllByEvent(Event event);
 
-    List<ParticipationRequest> findAllByRequester(SecurityProperties.User user);
+    List<ParticipationRequest> findAllByRequester(User user);
 
     List<ParticipationRequest> findAllByIdIn(List<Long> requestIds);
 
@@ -40,6 +39,4 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     default Map<Long, Long> countConfirmedRequestsForEvents(Set<Long> eventIds) {
         return null;
     }
-
-    long countByEventAndStatus(Long eventId, RequestStatus status);
 }

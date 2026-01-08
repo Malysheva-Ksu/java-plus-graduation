@@ -192,7 +192,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
     @Override
     public long countEventsInStatus(Long eventId, RequestStatus status) {
-        return requestRepository.countByEventAndStatus(eventId, status);
+        return requestRepository.countByEventIdAndStatus(eventId, status);
     }
 
     @Override
