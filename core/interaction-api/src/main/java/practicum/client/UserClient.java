@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import practicum.model.dto.user.UserDto;
 
 import java.util.List;
+import java.util.Optional;
 
 @FeignClient(
         name = "user-service",
@@ -15,4 +16,7 @@ public interface UserClient {
 
     @GetMapping("/list")
     List<UserDto> getUsers(@RequestParam("ids") List<Long> userIds) throws FeignException;
+
+    @GetMapping("/{userId}")
+    Optional<UserDto> getUser(@PathVariable("userId") Long userId);
 }
