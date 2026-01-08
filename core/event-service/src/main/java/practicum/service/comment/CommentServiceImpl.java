@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import practicum.client.UserClient;
 import practicum.exception.NotFoundException;
 import practicum.exception.ValidationException;
 import practicum.mapper.CommentMapper;
@@ -12,12 +13,13 @@ import practicum.model.Event;
 import practicum.model.User;
 import practicum.model.dto.comment.CommentDto;
 import practicum.model.dto.comment.NewCommentDto;
+import practicum.model.dto.user.UserDto;
 import practicum.repository.CommentRepository;
 import practicum.repository.EventRepository;
-import practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,14 +29,14 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
+    private final UserClient userClient;
     private final EventRepository eventRepository;
 
     @Override
     @Transactional
     public CommentDto addComment(Long userId, Long eventId, NewCommentDto newCommentDto) {
-        User author = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        User author = loadUserEntity(userId);
+
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
 
@@ -69,5 +71,17 @@ public class CommentServiceImpl implements CommentService {
             throw new ValidationException("Пользователь с id=" + userId + " не является автором комментария с id=" + commentId);
         }
         commentRepository.delete(comment);
+    }
+
+    private User loadUserEntity(Long userId) {
+        UserDto dto = userClient.getUsers(List.of(userId)).stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        return User.builder()
+                .id(dto.getId())
+                .email(dto.getEmail())
+                .name(dto.getName())
+                .build();
     }
 }

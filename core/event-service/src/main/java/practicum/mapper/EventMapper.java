@@ -7,6 +7,7 @@ import practicum.model.User;
 import practicum.model.dto.event.EventFullDto;
 import practicum.model.dto.event.EventShortDto;
 import practicum.model.dto.event.NewEventDto;
+import practicum.model.dto.user.UserShortDto;
 import practicum.model.enums.EventState;
 
 import java.time.LocalDateTime;
@@ -65,7 +66,7 @@ public final class EventMapper {
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
                 event.getEventDate(),
-                UserMapper.toShortDto(event.getInitiator()),
+                toUserShortDto(event.getInitiator()),
                 event.getPaid(),
                 event.getTitle(),
                 event.getViews(),
@@ -107,7 +108,7 @@ public final class EventMapper {
                 event.getCreatedOn(),
                 event.getDescription(),
                 event.getEventDate(),
-                UserMapper.toShortDto(event.getInitiator()),
+                toUserShortDto(event.getInitiator()),
                 LocationMapper.toLocationDto(event.getLocation()),
                 event.getPaid(),
                 event.getParticipantLimit(),
@@ -138,5 +139,12 @@ public final class EventMapper {
 
     private static long defaultConfirmed(Event event) {
         return event.getConfirmedRequests() != null ? event.getConfirmedRequests() : 0L;
+    }
+
+    private static UserShortDto toUserShortDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        return new UserShortDto(user.getId(), user.getName());
     }
 }
