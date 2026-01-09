@@ -20,8 +20,7 @@ public class InternalParticipationRequestController {
     private final ParticipationRequestService participationRequestService;
 
     @GetMapping("/{eventId}/count")
-    public long countEventsInStatus(@PathVariable("eventId") Long eventId,
-                                    @RequestParam("status") RequestStatus status) {
+    public long countEventsInStatus(@PathVariable Long eventId, RequestStatus status) {
         return participationRequestService.countEventsInStatus(eventId, status);
     }
 
@@ -31,15 +30,19 @@ public class InternalParticipationRequestController {
     }
 
     @GetMapping("/owner/{ownerId}/event/{eventId}")
-    public List<ParticipationRequestDto> getRequestsForEventByOwner(@PathVariable("ownerId") Long ownerId,
-                                                                    @PathVariable("eventId") Long eventId) {
+    public List<ParticipationRequestDto> getRequestsForEventByOwner(
+            @PathVariable Long ownerId,
+            @PathVariable Long eventId
+    ) {
         return participationRequestService.getRequestsByOwner(ownerId, eventId);
     }
 
     @PatchMapping("/user/{userId}/event/{eventId}/status")
-    public EventRequestStatusUpdateResult updateRequestStatus(@PathVariable("userId") Long userId,
-                                                              @PathVariable("eventId") Long eventId,
-                                                              @RequestBody EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
-        return participationRequestService.updateRequests(userId, eventId, eventRequestStatusUpdateRequest);
+    EventRequestStatusUpdateResult updateRequestStatus(
+            @PathVariable Long userId,
+            @PathVariable Long eventId,
+            @RequestBody EventRequestStatusUpdateRequest requestStatusUpdateDto
+    ) {
+        return participationRequestService.updateRequests(userId, eventId, requestStatusUpdateDto);
     }
 }

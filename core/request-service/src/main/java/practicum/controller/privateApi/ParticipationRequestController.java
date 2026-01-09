@@ -19,33 +19,23 @@ public class ParticipationRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ParticipationRequestDto createRequest(
-            @PathVariable Long userId,
-            @RequestParam(required = false) Long eventId) {
-
-        log.info("PRIVATE-API: Попытка создания запроса. User: {}, Event: {}", userId, eventId);
-
-        if (eventId == null) {
-            log.warn("Ошибка создания запроса: отсутствует eventId");
-            throw new IllegalArgumentException("Идентификатор события (eventId) является обязательным.");
-        }
-
+    public ParticipationRequestDto createRequest(@PathVariable Long userId, @RequestParam Long eventId) {
+        log.info("Creating request for user id {} with event id {}", userId, eventId);
         return requestService.createRequest(userId, eventId);
     }
 
     @GetMapping
-    public Collection<ParticipationRequestDto> getUserRequests(
-            @PathVariable Long userId
-    ) {
-        log.info("PRIVATE-API: Получение заявок пользователя ID={}", userId);
+    public Collection<ParticipationRequestDto> getUserRequests(@PathVariable Long userId) {
+        log.info("Getting requests for user id {}", userId);
         return requestService.getUserRequests(userId);
     }
 
     @PatchMapping("/{requestId}/cancel")
     public ResponseEntity<ParticipationRequestDto> cancelRequest(
             @PathVariable Long userId,
-            @PathVariable Long requestId) {
-        log.info("PRIVATE-API: Отмена заявки ID={} пользователем ID={}", requestId, userId);
+            @PathVariable Long requestId
+    ) {
+        log.info("Пользователь ID={} отменяет заявку ID={}", userId, requestId);
         ParticipationRequestDto canceledRequest = requestService.cancelRequest(userId, requestId);
         return ResponseEntity.ok(canceledRequest);
     }
