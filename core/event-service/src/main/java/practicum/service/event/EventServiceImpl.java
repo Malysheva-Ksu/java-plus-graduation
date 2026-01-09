@@ -99,7 +99,7 @@ public class EventServiceImpl implements EventService {
                         new NotFoundException("Пользователь с идентификатором " + userId + " не найден."));
 
         Pageable pageable = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.findAllByInitiatorId(initiator.getId(), pageable);
+        List<Event> events = eventRepository.findAllByInitiator(initiator.getId(), pageable);
         return EventMapper.toEventShortDtoList(events);
     }
 
@@ -183,7 +183,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest dto) {
-        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
+        Event event = eventRepository.findByIdAndInitiator(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Событие " + eventId + " для пользователя " + userId + " не найдено.")
                 );
@@ -467,7 +467,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Event findEventByIdAndInitiatorId(Long eventId, Long userId) {
-        return eventRepository.findByIdAndInitiatorId(eventId, userId)
+        return eventRepository.findByIdAndInitiator(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Событие с id=" + eventId + " для инициатора id=" + userId + " не найдено."
                 ));
