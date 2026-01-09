@@ -14,9 +14,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EventService {
-
     @Transactional
     EventFullDto createEvent(NewEventDto newEventDto, Long userId);
+
+    Optional<EventFullDto> getEvent(Long eventId);
+
+    EventRequestStatusUpdateResult updateParticipationRequestStatus(
+            Long userId, Long eventId, EventRequestStatusUpdateRequest requestStatusUpdateDto
+    );
+
+    List<ParticipationRequestDto> getEventParticipationRequests(Long userId, Long eventId);
+
+    void updateConfirmedRequests(Long eventId, Long confirmedRequests);
 
     List<EventShortDto> getEvents(Long userId, Integer from, Integer size);
 
@@ -33,24 +42,16 @@ public interface EventService {
                                         Boolean onlyAvailable, SortValue sort,
                                         Integer from, Integer size, HttpServletRequest request);
 
-    @Transactional
+    @Transactional(readOnly = true)
     EventFullDto getEvent(Long eventId, HttpServletRequest request);
 
-    List<EventFullDto> getEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories,
-                                        LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size);
+    List<EventFullDto> getEventsByAdmin(
+            List<Long> users, List<EventState> states, List<Long> categories,
+            LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size
+    );
 
     List<EventShortDto> searchPublicEvents(String text, List<Long> categories, Boolean paid,
                                            LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                            Boolean onlyAvailable, SortValue sort,
                                            Integer from, Integer size, HttpServletRequest request);
-
-    EventRequestStatusUpdateResult updateParticipationRequestStatus(
-            Long userId, Long eventId, EventRequestStatusUpdateRequest requestStatusUpdateDto
-    );
-
-    List<ParticipationRequestDto> getEventParticipationRequests(Long userId, Long eventId);
-
-    void updateConfirmedRequests(Long eventId, Long confirmedRequests);
-
-    Optional<EventFullDto> getEvent(Long eventId);
 }
