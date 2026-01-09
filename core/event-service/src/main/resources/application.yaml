@@ -14,9 +14,9 @@ spring:
         useRandomPolicy: true
         max-interval: 6000
     openfeign:
-      httpclient:
+      okhttp:
         enabled: true
-        
+
 
 eureka:
   client:
