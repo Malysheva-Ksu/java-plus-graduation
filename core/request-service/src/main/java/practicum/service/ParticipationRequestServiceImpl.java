@@ -1,5 +1,6 @@
 package practicum.service;
 
+import jakarta.ws.rs.ServiceUnavailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,15 +46,21 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         log.info("Пользователь id={} создаёт запрос на участие в событии id={}", userId, eventId);
 
         User requester = userRepository.findById(userId).orElseGet(() -> {
-            UserDto userDto = userClient.getUser(userId)
-                    .orElseThrow(() -> new NotFoundException("User with id=" + userId + " not found"));
+            try {
+                UserDto userDto = userClient.getUser(userId)
+                        .orElseThrow(() -> new NotFoundException("User with id=" + userId + " not found"));
 
-            User newUser = User.builder()
-                    .id(userDto.getId())
-                    .name(userDto.getName())
-                    .email(userDto.getEmail())
-                    .build();
-            return userRepository.save(newUser);
+                User newUser = User.builder()
+                        .id(userDto.getId())
+                        .name(userDto.getName())
+                        .email(userDto.getEmail())
+                        .build();
+                return userRepository.save(newUser);
+            } catch (feign.FeignException.NotFound e) {
+                throw new NotFoundException("Пользователь с id=" + userId + " не зарегистрирован в системе.");
+            } catch (feign.FeignException e) {
+                throw new ServiceUnavailableException("Сервис пользователей временно недоступен");
+            }
         });
 
         EventFullDto eventDto = loadEvent(eventId);

@@ -21,8 +21,15 @@ public class ParticipationRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto createRequest(
             @PathVariable Long userId,
-            @RequestParam Long eventId) {
-        log.info("PRIVATE-API: Создание запроса. UserID={}, EventID={}", userId, eventId);
+            @RequestParam(required = false) Long eventId) {
+
+        log.info("PRIVATE-API: Попытка создания запроса. User: {}, Event: {}", userId, eventId);
+
+        if (eventId == null) {
+            log.warn("Ошибка создания запроса: отсутствует eventId");
+            throw new IllegalArgumentException("Идентификатор события (eventId) является обязательным.");
+        }
+
         return requestService.createRequest(userId, eventId);
     }
 
