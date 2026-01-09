@@ -70,21 +70,21 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createEvent(NewEventDto newEventDto, Long userId) {
         validateEventDate(newEventDto.getEventDate(), 1);
 
-        User initiator = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Инициатор с id=" + userId + " не найден."));
-
-        initiator = userRepository.save(initiator);
+        Optional<UserDto> userDto = findUserById(userId);
+        if (userDto.isEmpty()) new NotFoundException("Пользователь с ID=" + userId + " не найден.");
 
         Category category = categoryRepository.findById(newEventDto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Категория не найдена."));
+                .orElseThrow(() -> new NotFoundException("Категория с ID=" + newEventDto.getCategory() + " не найдена."));
 
-        Location location = resolveLocation(newEventDto.getLocation());
+        Location location = getLocation(newEventDto.getLocation());
+        Event event = EventMapper.toEvent(newEventDto, category, userDto.get(), location);
 
-        Event event = EventMapper.toEvent(newEventDto, category, initiator, location);
+        return EventMapper.toFullEventDto(eventRepository.save(event));
+    }
 
-        Event saved = eventRepository.save(event);
-
-        return EventMapper.toFullEventDto(saved);
+    private Location getLocation(LocationDto locationDto) {
+        return locationRepository.findByLatAndLon(locationDto.getLat(), locationDto.getLon())
+                .orElseGet(() -> locationRepository.save(LocationMapper.toLocation(locationDto)));
     }
 
     @Override

@@ -113,7 +113,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
         EventFullDto eventDto = loadEvent(eventId);
 
-        if (!Objects.equals(eventDto.getInitiator().getId(), userId)) {
+        if (!Objects.equals(eventDto.getInitiator(), userId)) {
             throw new ConflictException("Изменять статусы заявок может только инициатор события.");
         }
 
@@ -194,7 +194,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         log.info("Инициатор id={} запрашивает список заявок для события id={}", userId, eventId);
 
         EventFullDto eventDto = loadEvent(eventId);
-        if (!Objects.equals(eventDto.getInitiator().getId(), userId)) {
+        if (!Objects.equals(eventDto.getInitiator(), userId)) {
             throw new ConflictException(
                     "Пользователь " + userId + " не является инициатором события " + eventId
             );
@@ -234,7 +234,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             );
         }
 
-        if (Objects.equals(event.getInitiator().getId(), userId)) {
+        if (Objects.equals(event.getInitiator(), userId)) {
             throw new ConflictException("Инициатор не может отправлять заявку на собственное событие.");
         }
 

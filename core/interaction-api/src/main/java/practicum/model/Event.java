@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import practicum.model.Category;
+import practicum.model.Comment;
+import practicum.model.Location;
 import practicum.model.enums.EventState;
 
 import java.time.LocalDateTime;
@@ -13,23 +16,23 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "events")
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "annotation", length = 2000)
+    @Column(name = "annotation")
     private String annotation;
 
     @Column(name = "title")
     private String title;
 
-    @Column(name = "description", length = 7000)
+    @Column(name = "description")
     private String description;
 
     @Column(name = "created_on")
@@ -40,9 +43,8 @@ public class Event {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
 
-    @ManyToOne
-    @JoinColumn(name = "initiator_id", nullable = false)
-    private User initiator;
+    @Column(name = "initiator_id", nullable = false)
+    private Long initiator;
 
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "location_id", nullable = false)

@@ -1,45 +1,40 @@
 package practicum.mapper;
 
-import practicum.model.Category;
-import practicum.model.Event;
-import practicum.model.Location;
-import practicum.model.User;
 import practicum.model.dto.event.EventFullDto;
 import practicum.model.dto.event.EventShortDto;
 import practicum.model.dto.event.NewEventDto;
-import practicum.model.dto.user.UserShortDto;
+import practicum.model.dto.user.UserDto;
 import practicum.model.enums.EventState;
+import practicum.model.Category;
+import practicum.model.Event;
+import practicum.model.Location;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class EventMapper {
-
     private EventMapper() {
+
     }
 
-    public static Event toEvent(NewEventDto source,
-                                Category category,
-                                User initiator,
-                                Location location) {
-        if (source == null) {
-            return null;
-        }
+    public static Event toEvent(NewEventDto dto, Category category, UserDto user, Location location) {
+        if (Objects.isNull(dto)) return null;
 
         return Event.builder()
-                .annotation(source.getAnnotation())
+                .annotation(dto.getAnnotation())
                 .category(category)
-                .title(source.getTitle())
-                .description(source.getDescription())
-                .eventDate(source.getEventDate())
+                .title(dto.getTitle())
+                .description(dto.getDescription())
+                .eventDate(dto.getEventDate())
                 .location(location)
-                .paid(source.getPaid())
-                .participantLimit(resolveParticipantLimit(source))
-                .requestModeration(resolveRequestModeration(source))
-                .initiator(initiator)
+                .paid(dto.getPaid())
+                .participantLimit(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0)
+                .requestModeration(dto.getRequestModeration() != null ? dto.getRequestModeration() : true)
+                .initiator(user.getId())
                 .state(EventState.PENDING)
                 .createdOn(LocalDateTime.now())
                 .publishedOn(null)
@@ -48,37 +43,25 @@ public final class EventMapper {
                 .build();
     }
 
-    private static long resolveParticipantLimit(NewEventDto dto) {
-        return dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0;
-    }
-
-    private static boolean resolveRequestModeration(NewEventDto dto) {
-        return dto.getRequestModeration() != null ? dto.getRequestModeration() : true;
-    }
-
     public static EventShortDto toEventShortDto(Event event) {
-        if (event == null) {
-            return null;
-        }
+        if (Objects.isNull(event)) return null;
 
         return new EventShortDto(
                 event.getId(),
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
                 event.getEventDate(),
-                toUserShortDto(event.getInitiator()),
+                event.getInitiator(),
                 event.getPaid(),
                 event.getTitle(),
                 event.getViews(),
-                defaultConfirmed(event),
+                event.getConfirmedRequests(),
                 event.getParticipantLimit()
         );
     }
 
     public static Set<EventShortDto> toEventShortDtoSet(Set<Event> events) {
-        if (events == null || events.isEmpty()) {
-            return Collections.emptySet();
-        }
+        if (Objects.isNull(events) || events.isEmpty()) return Collections.emptySet();
 
         return events.stream()
                 .map(EventMapper::toEventShortDto)
@@ -86,9 +69,7 @@ public final class EventMapper {
     }
 
     public static List<EventShortDto> toEventShortDtoList(List<Event> events) {
-        if (events == null || events.isEmpty()) {
-            return Collections.emptyList();
-        }
+        if (Objects.isNull(events) || events.isEmpty()) return Collections.emptyList();
 
         return events.stream()
                 .map(EventMapper::toEventShortDto)
@@ -96,9 +77,7 @@ public final class EventMapper {
     }
 
     public static EventFullDto toFullEventDto(Event event, long confirmedRequestsCount) {
-        if (event == null) {
-            return null;
-        }
+        if (Objects.isNull(event)) return null;
 
         return new EventFullDto(
                 event.getId(),
@@ -108,7 +87,7 @@ public final class EventMapper {
                 event.getCreatedOn(),
                 event.getDescription(),
                 event.getEventDate(),
-                toUserShortDto(event.getInitiator()),
+                event.getInitiator(),
                 LocationMapper.toLocationDto(event.getLocation()),
                 event.getPaid(),
                 event.getParticipantLimit(),
@@ -121,30 +100,18 @@ public final class EventMapper {
     }
 
     public static EventFullDto toFullEventDto(Event event) {
-        if (event == null) {
-            return null;
-        }
-        return toFullEventDto(event, defaultConfirmed(event));
+        if (Objects.isNull(event)) return null;
+        return toFullEventDto(event, Objects.nonNull(event.getConfirmedRequests())
+                ? event.getConfirmedRequests()
+                : 0L
+        );
     }
 
     public static List<EventFullDto> toEventFullDtoList(List<Event> events) {
-        if (events == null || events.isEmpty()) {
-            return Collections.emptyList();
-        }
+        if (Objects.isNull(events) || events.isEmpty()) return Collections.emptyList();
 
         return events.stream()
                 .map(EventMapper::toFullEventDto)
                 .collect(Collectors.toList());
-    }
-
-    private static long defaultConfirmed(Event event) {
-        return event.getConfirmedRequests() != null ? event.getConfirmedRequests() : 0L;
-    }
-
-    private static UserShortDto toUserShortDto(User user) {
-        if (user == null) {
-            return null;
-        }
-        return new UserShortDto(user.getId(), user.getName());
     }
 }
