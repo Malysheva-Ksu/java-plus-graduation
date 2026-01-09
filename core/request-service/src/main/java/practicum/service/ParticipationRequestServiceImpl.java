@@ -115,63 +115,86 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             return convertToDtoList(requestRepository.findAllByEvent(eventId));
         }
 
-        @Override
-        @Transactional
-        public EventRequestStatusUpdateResult updateRequests(
-                Long userId, Long eventId, EventRequestStatusUpdateRequest updateInfo
-        ) {
-            log.info("Массовое обновление статусов для события id={}", eventId);
-            EventFullDto event = fetchEvent(eventId);
+    @Override
+    @Transactional
+    public EventRequestStatusUpdateResult updateRequests(
+            Long userId, Long eventId, EventRequestStatusUpdateRequest statusUpdateRequest
+    ) {
 
-            if (!event.getInitiator().equals(userId)) {
-                throw new ConflictException("Право редактирования есть только у создателя события.");
-            }if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
-                return new EventRequestStatusUpdateResult(List.of(), List.of());
-            }
+        EventFullDto eventFullDto = fetchEvent(eventId);
 
-            List<ParticipationRequest> targetRequests = requestRepository.findAllByIdIn(updateInfo.getRequestIds());
-
-            if (targetRequests.stream().anyMatch(r -> r.getStatus() != RequestStatus.PENDING)) {
-                throw new ConflictException("Статус можно менять только у заявок в ожидании (PENDING).");
-            }
-
-            List<ParticipationRequest> confirmed = new ArrayList<>();
-            List<ParticipationRequest> rejected = new ArrayList<>();
-
-            long limit = event.getParticipantLimit();
-            long currentCount = event.getConfirmedRequests() != null ? event.getConfirmedRequests() : 0L;
-
-            if (updateInfo.getStatus() == RequestStatus.REJECTED) {
-                targetRequests.forEach(r -> r.setStatus(RequestStatus.REJECTED));
-                rejected.addAll(targetRequests);
-            } else {
-                for (ParticipationRequest req : targetRequests) {
-                    if (currentCount < limit) {
-                        req.setStatus(RequestStatus.CONFIRMED);
-                        confirmed.add(req);
-                        currentCount++;
-                    } else {
-                        req.setStatus(RequestStatus.REJECTED);
-                        rejected.add(req);
-                    }
-                }
-
-                if (currentCount >= limit) {
-                    List<ParticipationRequest> restPending = requestRepository.findAllByEventAndStatus(eventId, RequestStatus.PENDING);
-                    restPending.forEach(r -> r.setStatus(RequestStatus.REJECTED));
-                    rejected.addAll(restPending);
-                }
-                event.setConfirmedRequests(currentCount);
-            }
-
-            requestRepository.saveAll(confirmed);
-            requestRepository.saveAll(rejected);
-            requestRepository.flush();
-
-            eventClient.updateConfirmedRequests(event.getId(), event.getConfirmedRequests());
-
-            return new EventRequestStatusUpdateResult(convertToDtoList(confirmed), convertToDtoList(rejected));
+        if (!eventFullDto.getInitiator().equals(userId)) {
+            throw new ConflictException("Только инициатор события может обновлять статусы заявок.");
         }
+
+        if (!eventFullDto.getRequestModeration() || eventFullDto.getParticipantLimit() == 0) {
+            log.warn("Событие id={} не требует модерации заявок или не имеет лимита.", eventId);
+            return new EventRequestStatusUpdateResult(List.of(), List.of());
+        }
+
+        List<ParticipationRequest> requestsToUpdate =
+                requestRepository.findAllByIdIn(statusUpdateRequest.getRequestIds());
+
+        if (requestsToUpdate.stream().anyMatch(req -> req.getStatus() != RequestStatus.PENDING)) {
+            throw new ConflictException("Можно изменять только заявки в статусе PENDING.");
+        }
+
+        List<ParticipationRequest> confirmedRequests = new ArrayList<>();
+        List<ParticipationRequest> rejectedRequests = new ArrayList<>();
+        RequestStatus newStatus = statusUpdateRequest.getStatus();
+
+        long currentConfirmedCountInEventColumn = eventFullDto.getConfirmedRequests() != null
+                ? eventFullDto.getConfirmedRequests()
+                : 0L;
+
+        long limit = eventFullDto.getParticipantLimit();
+
+        if (newStatus == RequestStatus.REJECTED) {
+            requestsToUpdate.forEach(request -> request.setStatus(RequestStatus.REJECTED));
+            rejectedRequests.addAll(requestsToUpdate);
+        } else if (newStatus == RequestStatus.CONFIRMED) {
+            if (currentConfirmedCountInEventColumn >= limit) {
+                requestsToUpdate.forEach(request -> request.setStatus(RequestStatus.REJECTED));
+                rejectedRequests.addAll(requestsToUpdate);
+                throw new ConflictException("Лимит участников уже достигнут. Невозможно подтвердить новые заявки.");
+            }
+
+            for (ParticipationRequest request : requestsToUpdate) {
+                if (currentConfirmedCountInEventColumn < limit) {
+                    request.setStatus(RequestStatus.CONFIRMED);
+                    confirmedRequests.add(request);
+                    currentConfirmedCountInEventColumn++;
+                } else {
+                    request.setStatus(RequestStatus.REJECTED);
+                    rejectedRequests.add(request);
+                }
+            }
+
+            if (currentConfirmedCountInEventColumn >= limit) {
+                List<ParticipationRequest> otherPendingRequests =
+                        requestRepository.findAllByEventAndStatus(eventId, RequestStatus.PENDING);
+                otherPendingRequests.forEach(req -> req.setStatus(RequestStatus.REJECTED));
+                rejectedRequests.addAll(otherPendingRequests);
+                log.info(
+                        "Достигнут лимит участников для события {}. Автоматически отклонено {} других заявок.",
+                        eventId, otherPendingRequests.size()
+                );
+            }
+
+            eventFullDto.setConfirmedRequests(currentConfirmedCountInEventColumn);
+        }
+
+        requestRepository.saveAll(confirmedRequests);
+        requestRepository.saveAll(rejectedRequests);
+        requestRepository.flush();
+
+        eventClient.updateConfirmedRequests(eventFullDto.getId(), eventFullDto.getConfirmedRequests());
+
+        return new EventRequestStatusUpdateResult(
+                convertToDtoList(confirmedRequests),
+                convertToDtoList(rejectedRequests)
+        );
+    }
 
         private EventFullDto fetchEvent(Long id) {
             return eventClient.getEvent(id)
