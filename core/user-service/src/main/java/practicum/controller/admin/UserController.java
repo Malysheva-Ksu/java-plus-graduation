@@ -35,14 +35,12 @@ public class UserController {
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size
     ) {
-        log.info("ADMIN-API: Получение списка пользователей. IDs: {}, from: {}, size: {}", ids, from, size);
         return userService.getUsers(ids, from, size);
     }
 
     @DeleteMapping(path = "/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
-        log.info("Deleting user with id {}", userId);
         userService.deleteUser(userId);
     }
 }

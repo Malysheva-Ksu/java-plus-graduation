@@ -22,13 +22,13 @@ public class ParticipationRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime created;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false)
-    private Event event;
+    @ToString.Exclude
+    @Column(name = "event_id", nullable = false)
+    private Long event;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id", nullable = false)
-    private User requester;
+    @ToString.Exclude
+    @Column(name = "requester_id", nullable = false)
+    private Long requester;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
