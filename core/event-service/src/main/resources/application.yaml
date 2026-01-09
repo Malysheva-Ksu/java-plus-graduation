@@ -13,6 +13,10 @@ spring:
       retry:
         useRandomPolicy: true
         max-interval: 6000
+    openfeign:
+      httpclient:
+        enabled: true
+        
 
 eureka:
   client:
