@@ -26,6 +26,27 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class ErrorHandler {
 
+    @ExceptionHandler(feign.FeignException.class)
+    public ResponseEntity<ApiError> handleFeignException(final feign.FeignException exception) {
+        log.error("Feign error: status {}, message {}", exception.status(), exception.getMessage());
+
+        HttpStatus status = HttpStatus.resolve(exception.status());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        String message = exception.contentUTF8();
+        if (message == null || message.isBlank()) {
+            message = exception.getMessage();
+        }
+
+        ApiError error = ApiError.builder(status, "Error from internal service")
+                .message(message)
+                .build();
+
+        return ResponseEntity.status(status).body(error);
+    }
+
     @ExceptionHandler
     public ResponseEntity<ApiError> handleException(final Exception exception) {
         logError(exception);
