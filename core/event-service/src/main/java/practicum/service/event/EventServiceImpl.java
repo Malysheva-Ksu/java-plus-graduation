@@ -4,10 +4,12 @@ import feign.FeignException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -109,6 +111,74 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public List<EventShortDto> getEventsByUser(String text, List<Long> categories, Boolean paid,
+                                               LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                               Boolean onlyAvailable, SortValue sort,
+                                               Integer from, Integer size, HttpServletRequest request) {
+
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new ValidationException("Некорректные параметры временного интервала.");
+        }
+
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Event> criteria = builder.createQuery(Event.class);
+        Root<Event> root = criteria.from(Event.class);
+
+        root.fetch("category", JoinType.LEFT);
+
+        List<Predicate> conditions = new ArrayList<>();
+
+        if (text != null && !text.isBlank()) {
+            String pattern = "%" + text.toLowerCase() + "%";
+            conditions.add(builder.or(
+                    builder.like(builder.lower(root.get("annotation")), pattern),
+                    builder.like(builder.lower(root.get("description")), pattern)
+            ));
+        }
+
+        if (categories != null && !categories.isEmpty()) {
+            conditions.add(root.get("category").get("id").in(categories));
+        }
+
+        if (paid != null) {
+            conditions.add(builder.equal(root.get("paid"), paid));
+        }
+
+        LocalDateTime limitStart = (rangeStart != null) ? rangeStart : LocalDateTime.now();
+        conditions.add(builder.greaterThan(root.get("eventDate"), limitStart));
+
+        if (rangeEnd != null) {
+            conditions.add(builder.lessThan(root.get("eventDate"), rangeEnd));
+        }
+
+        conditions.add(builder.equal(root.get("state"), EventState.PUBLISHED));
+
+        if (onlyAvailable != null && onlyAvailable) {
+            conditions.add(builder.or(
+                    builder.equal(root.get("participantLimit"), 0),
+                    builder.lessThan(root.get("confirmedRequests"), root.get("participantLimit"))
+            ));
+        }
+
+        criteria.where(conditions.toArray(new Predicate[0]));
+
+        if (sort == SortValue.VIEWS) {
+            criteria.orderBy(builder.desc(root.get("views")));
+        } else {
+            criteria.orderBy(builder.desc(root.get("eventDate")));
+        }
+
+        List<Event> result = entityManager.createQuery(criteria)
+                .setFirstResult(from)
+                .setMaxResults(size)
+                .getResultList();
+
+        sendHitAsync(request.getRequestURI(), request.getRemoteAddr());
+
+        return EventMapper.toEventShortDtoList(result);
+    }
+
+    @Override
     public EventFullDto getEventByUser(Long userId, Long eventId) {
         Event event = findEventByIdAndInitiatorId(eventId, userId);
         long confirmed = requestClient
@@ -196,21 +266,6 @@ public class EventServiceImpl implements EventService {
         return events.stream()
                 .map(EventMapper::toFullEventDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<EventShortDto> getEventsByUser(String text,
-                                               List<Long> categories,
-                                               Boolean paid,
-                                               LocalDateTime rangeStart,
-                                               LocalDateTime rangeEnd,
-                                               Boolean onlyAvailable,
-                                               SortValue sort,
-                                               Integer from,
-                                               Integer size,
-                                               HttpServletRequest request) {
-        return searchPublicEvents(text, categories, paid,
-                rangeStart, rangeEnd, onlyAvailable, sort, from, size, request);
     }
 
     @Override
