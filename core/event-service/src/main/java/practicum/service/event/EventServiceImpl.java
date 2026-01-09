@@ -70,17 +70,9 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createEvent(NewEventDto newEventDto, Long userId) {
         validateEventDate(newEventDto.getEventDate(), 1);
 
-        UserDto initiatorDto = findUserById(userId)
-                .orElseThrow(() ->
-                        new NotFoundException("Инициатор с id=" + userId + " отсутствует в системе."));
+        User initiator = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Инициатор с id=" + userId + " отсутствует в системе."));
 
-        User initiator = User.builder()
-                .id(initiatorDto.getId())
-                .name(initiatorDto.getName())
-                .email(initiatorDto.getEmail())
-                .build();
-
-        initiator = userRepository.save(initiator);
 
         Category category = categoryRepository.findById(newEventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(
@@ -88,9 +80,10 @@ public class EventServiceImpl implements EventService {
                 );
 
         Location location = resolveLocation(newEventDto.getLocation());
-        Event event = EventMapper.toEvent(newEventDto, category, initiator, location);
 
+        Event event = EventMapper.toEvent(newEventDto, category, initiator, location);
         Event saved = eventRepository.save(event);
+
         return EventMapper.toFullEventDto(saved);
     }
 
