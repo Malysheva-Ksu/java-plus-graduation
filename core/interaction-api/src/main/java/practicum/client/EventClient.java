@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface EventClient {
 
     @GetMapping("/{eventId}")
-    Optional<EventFullDto> getEvent(@PathVariable("eventId") Long eventId);
+    EventFullDto getEvent(@PathVariable("eventId") Long eventId);
 
     @PatchMapping("/{eventId}/confirmed-requests")
     void updateConfirmedRequests(@PathVariable("eventId") Long eventId,

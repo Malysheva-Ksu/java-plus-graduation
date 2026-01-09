@@ -103,6 +103,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено"));
         event.setConfirmedRequests(confirmedRequests);
         eventRepository.save(event);
+        eventRepository.updateConfirmedRequests(eventId, confirmedRequests);
     }
 
     @Override
