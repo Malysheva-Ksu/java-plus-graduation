@@ -20,7 +20,7 @@ public class InternalParticipationRequestController {
     private final ParticipationRequestService participationRequestService;
 
     @GetMapping("/{eventId}/count")
-    public long countEventsInStatus(@PathVariable Long eventId, RequestStatus status) {
+    public long countEventsInStatus(@PathVariable Long eventId, @RequestParam RequestStatus status) {
         return participationRequestService.countEventsInStatus(eventId, status);
     }
 
