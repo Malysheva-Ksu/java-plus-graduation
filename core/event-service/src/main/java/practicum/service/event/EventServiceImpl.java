@@ -99,6 +99,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public void updateConfirmedRequests(Long eventId, Long confirmedRequests) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено"));
         event.setConfirmedRequests(confirmedRequests);
