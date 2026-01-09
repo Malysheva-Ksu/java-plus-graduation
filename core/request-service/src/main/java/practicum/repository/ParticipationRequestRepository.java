@@ -39,4 +39,6 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     default Map<Long, Long> countConfirmedRequestsForEvents(Set<Long> eventIds) {
         return null;
     }
+
+    boolean existsByRequesterIdAndEventId(Long userId, Long eventId);
 }

@@ -9,6 +9,7 @@ import practicum.client.EventClient;
 import practicum.client.UserClient;
 import practicum.exception.ConflictException;
 import practicum.exception.NotFoundException;
+import practicum.exception.ValidationException;
 import practicum.mapper.ParticipationRequestMapper;
 import practicum.model.Event;
 import practicum.model.ParticipationRequest;
@@ -40,34 +41,27 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
 
-    @Override
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
-        log.info("Пользователь id={} создаёт запрос на участие в событии id={}", userId, eventId);
+        if (requestRepository.existsByEventIdAndRequesterId(eventId, userId)) {
+            throw new ConflictException("Запрос на участие уже существует");
+        }
 
         User requester = userRepository.findById(userId).orElseGet(() -> {
-            try {
-                UserDto userDto = userClient.getUser(userId)
-                        .orElseThrow(() -> new NotFoundException("User with id=" + userId + " not found"));
-
-                User newUser = User.builder()
-                        .id(userDto.getId())
-                        .name(userDto.getName())
-                        .email(userDto.getEmail())
-                        .build();
-                return userRepository.save(newUser);
-            } catch (feign.FeignException.NotFound e) {
-                throw new NotFoundException("Пользователь с id=" + userId + " не зарегистрирован в системе.");
-            } catch (feign.FeignException e) {
-                throw new ServiceUnavailableException("Сервис пользователей временно недоступен");
-            }
+            UserDto userDto = userClient.getUser(userId)
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+            return userRepository.save(User.builder()
+                    .id(userDto.getId())
+                    .name(userDto.getName())
+                    .email(userDto.getEmail())
+                    .build());
         });
 
         EventFullDto eventDto = loadEvent(eventId);
         Event eventRef = eventRepository.findById(eventId).orElseGet(() -> {
-            Event newEvent = new Event();
-            newEvent.setId(eventDto.getId());
-            return eventRepository.save(newEvent);
+            Event newE = new Event();
+            newE.setId(eventDto.getId());
+            return eventRepository.save(newE);
         });
 
         validateRequestCreation(userId, eventDto);
@@ -76,23 +70,37 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                 .requester(requester)
                 .event(eventRef)
                 .created(LocalDateTime.now())
+                .status(calculateInitialStatus(eventDto))
                 .build();
 
-        boolean needsModeration = Boolean.TRUE.equals(eventDto.getRequestModeration())
-                && eventDto.getParticipantLimit() != null
-                && eventDto.getParticipantLimit() != 0;
+        ParticipationRequest saved = requestRepository.save(request);
 
-        request.setStatus(needsModeration ? RequestStatus.PENDING : RequestStatus.CONFIRMED);
-
-        ParticipationRequest savedRequest = requestRepository.save(request);
-        log.info("Создан запрос id={} со статусом {}", savedRequest.getId(), savedRequest.getStatus());
-
-        if (savedRequest.getStatus() == RequestStatus.CONFIRMED) {
-            long confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
-            eventClient.updateConfirmedRequests(eventId, confirmedCount);
+        if (saved.getStatus() == RequestStatus.CONFIRMED) {
+            updateConfirmedCount(eventId);
         }
 
-        return ParticipationRequestMapper.toParticipationRequestDto(savedRequest);
+        return ParticipationRequestMapper.toParticipationRequestDto(saved);
+    }
+
+    private void updateConfirmedCount(Long eventId) {
+        long confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
+
+        log.info("Обновление количества подтвержденных заявок для eventId={}: {}", eventId, confirmedCount);
+
+        try {
+            eventClient.updateConfirmedRequests(eventId, confirmedCount);
+        } catch (Exception e) {
+            log.error("Не удалось обновить счетчик заявок в event-service для eventId={}: {}",
+                    eventId, e.getMessage());
+        }
+    }
+
+    private RequestStatus calculateInitialStatus(EventFullDto event) {
+        if (!Boolean.TRUE.equals(event.getRequestModeration()) ||
+                (event.getParticipantLimit() != null && event.getParticipantLimit() == 0)) {
+            return RequestStatus.CONFIRMED;
+        }
+        return RequestStatus.PENDING;
     }
 
     @Override
@@ -198,21 +206,15 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     @Override
     @Transactional
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
-        log.info("Пользователь id={} отменяет заявку id={}", userId, requestId);
+        ParticipationRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Запрос id=" + requestId + " не найден"));
 
-        ParticipationRequest request = requestRepository.findByIdAndRequesterId(requestId, userId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Заявка с id=" + requestId + " пользователя " + userId + " не найдена.")
-                );
-
-        if (request.getStatus() == RequestStatus.CONFIRMED) {
-            throw new ConflictException("Нельзя отменить уже подтверждённую заявку.");
+        if (!request.getRequester().getId().equals(userId)) {
+            throw new ValidationException("Нельзя отменить чужой запрос");
         }
 
         request.setStatus(RequestStatus.CANCELED);
-        ParticipationRequest saved = requestRepository.save(request);
-
-        return ParticipationRequestMapper.toParticipationRequestDto(saved);
+        return ParticipationRequestMapper.toParticipationRequestDto(requestRepository.save(request));
     }
 
     @Override
