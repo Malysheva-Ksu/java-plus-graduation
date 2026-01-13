@@ -40,4 +40,16 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
         return countConfirmedRequestsForEventsRaw(eventIds).stream()
                 .collect(Collectors.toMap(obj -> (Long) obj[0], obj -> (Long) obj[1]));
     }
+
+    @Query("""
+            SELECT
+            CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END 
+            FROM ParticipationRequest r 
+            WHERE r.requester = :requesterId 
+            AND r.event = :eventId 
+            AND r.status = 'CONFIRMED'
+            """)
+    boolean isUserParticipant(Long requesterId, Long eventId);
+
+
 }

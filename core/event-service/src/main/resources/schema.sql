@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS events
     location_id        BIGINT,
     state              VARCHAR(21),
     views              BIGINT,
+    rating             DOUBLE PRECISION,
     FOREIGN KEY (category_id) REFERENCES categories (id),
     FOREIGN KEY (location_id) REFERENCES locations (id)
 );

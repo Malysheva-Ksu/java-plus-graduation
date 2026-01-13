@@ -29,4 +29,6 @@ public interface ParticipationRequestService {
     long countEventsInStatus(Long eventId, RequestStatus status);
 
     Map<Long, Long> countConfirmedRequestsForEvents(Set<Long> eventIds);
+
+    boolean isUserParticipant(Long userId, Long eventId);
 }

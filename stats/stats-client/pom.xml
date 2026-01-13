@@ -5,18 +5,29 @@
         <groupId>ru.practicum</groupId>
         <artifactId>stats</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>stats-client</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
+
         <dependency>
             <groupId>ru.practicum</groupId>
-            <artifactId>stats-dto</artifactId>
+            <artifactId>avro-schemas</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>analyzer</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>proto-schemas</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -40,6 +51,12 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.devh</groupId>
+            <artifactId>grpc-client-spring-boot-starter</artifactId>
+            <version>3.1.0.RELEASE</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

@@ -56,7 +56,8 @@ public final class EventMapper {
                 event.getTitle(),
                 event.getViews(),
                 event.getConfirmedRequests(),
-                event.getParticipantLimit()
+                event.getParticipantLimit(),
+                event.getRating()
         );
     }
 
@@ -95,7 +96,8 @@ public final class EventMapper {
                 event.getRequestModeration(),
                 event.getState(),
                 event.getTitle(),
-                event.getViews()
+                event.getViews(),
+                event.getRating()
         );
     }
 

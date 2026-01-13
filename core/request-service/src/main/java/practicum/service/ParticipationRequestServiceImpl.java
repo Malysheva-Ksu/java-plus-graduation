@@ -1,19 +1,17 @@
 package practicum.service;
 
-import jakarta.ws.rs.ServiceUnavailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import practicum.ActionType;
+import practicum.CollectorGrpcClient;
 import practicum.client.EventClient;
 import practicum.client.UserClient;
 import practicum.exception.ConflictException;
 import practicum.exception.NotFoundException;
-import practicum.exception.ValidationException;
 import practicum.mapper.ParticipationRequestMapper;
-import practicum.model.Event;
 import practicum.model.ParticipationRequest;
-import practicum.model.User;
 import practicum.model.dto.event.EventFullDto;
 import practicum.model.dto.request.EventRequestStatusUpdateRequest;
 import practicum.model.dto.request.EventRequestStatusUpdateResult;
@@ -21,9 +19,7 @@ import practicum.model.dto.request.ParticipationRequestDto;
 import practicum.model.dto.user.UserDto;
 import practicum.model.enums.EventState;
 import practicum.model.enums.RequestStatus;
-import practicum.repository.EventRepository;
 import practicum.repository.ParticipationRequestRepository;
-import practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -38,6 +34,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         private final UserClient userClient;
         private final EventClient eventClient;
         private final ParticipationRequestRepository requestRepository;
+    private final CollectorGrpcClient collectorGrpcClient;
 
         @Override
         public List<ParticipationRequestDto> getUserRequests(Long userId) {
@@ -100,6 +97,8 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
             ParticipationRequest saved = requestRepository.save(newRequest);
             log.info("Заявка сохранена с ID={} и статусом {}", saved.getId(), saved.getStatus());
+            collectorGrpcClient.sendUserActivity(userId, eventId, ActionType.ACTION_REGISTER);
+
             return ParticipationRequestMapper.toParticipationRequestDto(saved);
         }
 
@@ -207,4 +206,9 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         public Map<Long, Long> countConfirmedRequestsForEvents(Set<Long> eventIds) {
             return requestRepository.countConfirmedRequestsForEvents(eventIds);
         }
-    }
+
+        @Override
+        public boolean isUserParticipant(Long userId, Long eventId) {
+            return requestRepository.isUserParticipant(userId, eventId);
+        }
+}

@@ -45,4 +45,10 @@ public class InternalParticipationRequestController {
     ) {
         return participationRequestService.updateRequests(userId, eventId, requestStatusUpdateDto);
     }
+
+    @PostMapping("{eventId}/participant/{userId}")
+    public boolean isUserParticipant(@PathVariable Long userId, @PathVariable Long eventId) {
+        return participationRequestService.isUserParticipant(userId, eventId);
+    }
+
 }

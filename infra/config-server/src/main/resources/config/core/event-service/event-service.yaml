@@ -11,6 +11,21 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
 
+grpc:
+  client:
+    analyzer:
+      address: 'discovery:///analyzer'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+  server:
+    port: 0
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

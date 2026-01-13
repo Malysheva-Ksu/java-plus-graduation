@@ -79,4 +79,7 @@ public class Event {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Comment> comments = new HashSet<>();
+
+    @Column(name = "rating")
+    private Double rating;
 }
