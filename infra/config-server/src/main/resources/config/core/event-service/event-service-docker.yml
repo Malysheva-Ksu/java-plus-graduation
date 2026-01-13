@@ -33,4 +33,3 @@ logging:
     org.hibernate.sql: DEBUG
     org.hibernate.type: TRACE
     org.hibernate.orm.jdbc.bind: TRACE
-    liquibase: DEBUG
