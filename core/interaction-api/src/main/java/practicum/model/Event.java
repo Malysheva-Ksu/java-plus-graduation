@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import practicum.model.Category;
-import practicum.model.Comment;
-import practicum.model.Location;
 import practicum.model.enums.EventState;
 
 import java.time.LocalDateTime;

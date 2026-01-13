@@ -9,7 +9,7 @@ import practicum.client.RequestClient;
 import practicum.client.UserClient;
 
 @SpringBootApplication
-@EntityScan(basePackages = "practicum")
+@EntityScan(basePackages = {"practicum.model", "practicum"})
 @EnableJpaRepositories(basePackages = "practicum")
 @EnableFeignClients(clients = {
         UserClient.class,
