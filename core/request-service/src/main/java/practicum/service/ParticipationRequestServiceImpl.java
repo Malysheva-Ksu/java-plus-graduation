@@ -99,6 +99,10 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             log.info("Заявка сохранена с ID={} и статусом {}", saved.getId(), saved.getStatus());
             collectorGrpcClient.sendUserActivity(userId, eventId, ActionType.ACTION_REGISTER);
 
+            if (saved.getStatus() == RequestStatus.CONFIRMED) {
+                eventClient.updateConfirmedRequests(eventId, event.getConfirmedRequests() + 1);
+            }
+
             return ParticipationRequestMapper.toParticipationRequestDto(saved);
         }
 
