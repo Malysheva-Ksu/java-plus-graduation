@@ -72,4 +72,3 @@ CREATE INDEX IF NOT EXISTS idx_events_category_id ON events (category_id);
 CREATE INDEX IF NOT EXISTS idx_events_initiator_id ON events (initiator_id);
 CREATE INDEX IF NOT EXISTS idx_events_location_id ON events (location_id);
 CREATE INDEX IF NOT EXISTS idx_events_state ON events (state);
-ALTER TABLE events ADD CONSTRAINT fk_initiator FOREIGN KEY (initiator_id) REFERENCES users (id);
