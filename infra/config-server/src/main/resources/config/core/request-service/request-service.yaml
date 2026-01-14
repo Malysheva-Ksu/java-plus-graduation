@@ -1,6 +1,9 @@
 spring:
   application:
     name: request-service
+  sql:
+    init:
+      mode: always
 
   datasource:
     url: jdbc:postgresql://localhost:5432/ewm-db
@@ -23,14 +26,13 @@ grpc:
 
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: none
-    show-sql: true
     defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
+        globally_quoted_identifiers: true
+        temp.use_jdbc_metadata_defaults: false
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
