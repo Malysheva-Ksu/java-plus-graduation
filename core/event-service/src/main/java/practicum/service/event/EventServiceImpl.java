@@ -181,7 +181,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest updateRequest) {
-        Event event = eventRepository.findByIdAndInitiator(eventId, userId)
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие с ID=" + eventId + " и инициатором ID=" + userId + " не найдено."));
 
         if (event.getState() == EventState.PUBLISHED) {
@@ -411,7 +411,7 @@ public class EventServiceImpl implements EventService {
 
 
     private Event findEventByIdAndInitiatorId(Long eventId, Long userId) {
-        return eventRepository.findByIdAndInitiator(eventId, userId)
+        return eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Событие с ID=%d и инициатором ID=%d не найдено.", eventId, userId)
                 ));
