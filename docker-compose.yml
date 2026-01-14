@@ -127,8 +127,6 @@ services:
       config-server:
         condition: service_started
     environment:
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: true
 
       SPRING_PROFILES_ACTIVE: docker
       JAVA_OPTS: >
