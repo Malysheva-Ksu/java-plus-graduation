@@ -1,17 +1,16 @@
 package practicum.mapper;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import practicum.model.Comment;
-import practicum.model.User;
 import practicum.model.dto.comment.CommentDto;
 import practicum.model.dto.comment.NewCommentDto;
 import practicum.model.dto.user.UserShortDto;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CommentMapper {
 
-    private CommentMapper() {
-    }
-
-    public static CommentDto toCommentDto(Comment comment) {
+    public static CommentDto toCommentDto(Comment comment, UserShortDto authorDto) {
         if (comment == null) {
             return null;
         }
@@ -19,8 +18,8 @@ public final class CommentMapper {
         return CommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
-                .eventId(comment.getEvent().getId())
-                .author(toUserShortDto(comment.getAuthor()))
+                .eventId(comment.getEvent() != null ? comment.getEvent().getId() : null)
+                .author(authorDto)
                 .createdOn(comment.getCreatedOn())
                 .build();
     }
@@ -33,12 +32,5 @@ public final class CommentMapper {
         return Comment.builder()
                 .text(newCommentDto.getText())
                 .build();
-    }
-
-    private static UserShortDto toUserShortDto(User user) {
-        if (user == null) {
-            return null;
-        }
-        return new UserShortDto(user.getId(), user.getName());
     }
 }

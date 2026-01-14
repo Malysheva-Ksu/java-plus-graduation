@@ -10,15 +10,16 @@ import practicum.exception.ValidationException;
 import practicum.mapper.CommentMapper;
 import practicum.model.Comment;
 import practicum.model.Event;
-import practicum.model.User;
 import practicum.model.dto.comment.CommentDto;
 import practicum.model.dto.comment.NewCommentDto;
 import practicum.model.dto.user.UserDto;
+import practicum.model.dto.user.UserShortDto;
 import practicum.repository.CommentRepository;
 import practicum.repository.EventRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,53 +35,70 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentDto addComment(Long userId, Long eventId, NewCommentDto newCommentDto) {
-        User author = loadUserEntity(userId);
+        UserDto authorDto = fetchUserDto(userId);
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
 
         Comment comment = CommentMapper.toComment(newCommentDto);
-        comment.setAuthor(author);
+        comment.setAuthorId(userId);
         comment.setEvent(event);
         comment.setCreatedOn(LocalDateTime.now());
 
-        return CommentMapper.toCommentDto(commentRepository.save(comment));
+        Comment savedComment = commentRepository.save(comment);
+
+        UserShortDto shortDto = new UserShortDto(authorDto.getId(), authorDto.getName());
+        return CommentMapper.toCommentDto(savedComment, shortDto);
     }
 
     @Override
     public List<CommentDto> getCommentsByEvent(Long eventId) {
-        return commentRepository.findAllByEvent_Id(eventId).stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
+        List<Comment> comments = commentRepository.findAllByEvent_Id(eventId);
+        return enrichCommentsWithAuthors(comments);
     }
 
     @Override
     public List<CommentDto> getCommentsByUser(Long userId) {
-        return commentRepository.findAllByAuthor_Id(userId).stream()
-                .map(CommentMapper::toCommentDto)
+        UserDto authorDto = fetchUserDto(userId);
+        UserShortDto shortDto = new UserShortDto(authorDto.getId(), authorDto.getName());
+
+        return commentRepository.findAllByAuthorId(userId).stream()
+                .map(c -> CommentMapper.toCommentDto(c, shortDto))
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void deleteComment(Long userId, Long commentId) {
-        Comment comment = commentRepository.getReferenceById(commentId);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Комментарий с id=" + commentId + " не найден"));
 
-        if (!comment.getAuthor().getId().equals(userId)) {
-            throw new ValidationException("Пользователь с id=" + userId + " не является автором комментария с id=" + commentId);
+        if (!comment.getAuthorId().equals(userId)) {
+            throw new ValidationException("Пользователь с id=" + userId + " не является автором комментария");
         }
         commentRepository.delete(comment);
     }
 
-    private User loadUserEntity(Long userId) {
-        UserDto dto = userClient.getUsers(List.of(userId)).stream()
+    private List<CommentDto> enrichCommentsWithAuthors(List<Comment> comments) {
+        List<Long> authorIds = comments.stream()
+                .map(Comment::getAuthorId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, UserShortDto> authors = userClient.getUsers(authorIds).stream()
+                .collect(Collectors.toMap(
+                        UserDto::getId,
+                        dto -> new UserShortDto(dto.getId(), dto.getName())
+                ));
+
+        return comments.stream()
+                .map(c -> CommentMapper.toCommentDto(c, authors.get(c.getAuthorId())))
+                .collect(Collectors.toList());
+    }
+
+    private UserDto fetchUserDto(Long userId) {
+        return userClient.getUsers(List.of(userId)).stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        return User.builder()
-                .id(dto.getId())
-                .email(dto.getEmail())
-                .name(dto.getName())
-                .build();
     }
 }
