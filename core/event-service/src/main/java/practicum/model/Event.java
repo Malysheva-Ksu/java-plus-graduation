@@ -41,7 +41,7 @@ public class Event {
     private LocalDateTime eventDate;
 
     @Column(name = "initiator_id", nullable = false)
-    private Long initiator;
+    private Long initiatorId;
 
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "location_id", nullable = false)

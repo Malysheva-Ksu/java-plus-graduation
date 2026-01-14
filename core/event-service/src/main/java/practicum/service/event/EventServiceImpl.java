@@ -1,6 +1,5 @@
 package practicum.service.event;
 
-import feign.FeignException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,8 +26,6 @@ import practicum.model.Event;
 import practicum.model.Location;
 import practicum.model.dto.event.*;
 import practicum.model.dto.location.LocationDto;
-import practicum.model.dto.request.EventRequestStatusUpdateRequest;
-import practicum.model.dto.request.EventRequestStatusUpdateResult;
 import practicum.model.dto.request.ParticipationRequestDto;
 import practicum.model.dto.user.UserDto;
 import practicum.model.enums.*;

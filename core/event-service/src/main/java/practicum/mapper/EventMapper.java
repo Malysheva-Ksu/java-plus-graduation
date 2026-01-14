@@ -34,7 +34,7 @@ public final class EventMapper {
                 .paid(dto.getPaid())
                 .participantLimit(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0)
                 .requestModeration(dto.getRequestModeration() != null ? dto.getRequestModeration() : true)
-                .initiator(user.getId())
+                .initiatorId(user.getId())
                 .state(EventState.PENDING)
                 .createdOn(LocalDateTime.now())
                 .publishedOn(null)
@@ -51,7 +51,7 @@ public final class EventMapper {
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
                 event.getEventDate(),
-                event.getInitiator(),
+                event.getInitiatorId(),
                 event.getPaid(),
                 event.getTitle(),
                 event.getViews(),
@@ -88,7 +88,7 @@ public final class EventMapper {
                 event.getCreatedOn(),
                 event.getDescription(),
                 event.getEventDate(),
-                event.getInitiator(),
+                event.getInitiatorId(),
                 LocationMapper.toLocationDto(event.getLocation()),
                 event.getPaid(),
                 event.getParticipantLimit(),
