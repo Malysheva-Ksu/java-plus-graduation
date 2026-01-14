@@ -64,7 +64,7 @@ public class EventServiceImpl implements EventService {
         validateEventDate(newEventDto.getEventDate(), 1);
 
         Optional<UserDto> userDto = findUserById(userId);
-        if (userDto.isEmpty()) new NotFoundException("Пользователь с ID=" + userId + " не найден.");
+        if (userDto.isEmpty()) throw new NotFoundException("Пользователь с ID=" + userId + " не найден.");
 
         Category category = categoryRepository.findById(newEventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Категория с ID=" + newEventDto.getCategory() + " не найдена."));
@@ -303,7 +303,7 @@ public class EventServiceImpl implements EventService {
         List<Predicate> predicates = new ArrayList<>();
 
         if (users != null && !users.isEmpty()) {
-            predicates.add(eventRoot.get("initiator").in(users));
+            predicates.add(eventRoot.get("initiatorId").in(users));
         }
 
         if (states != null && !states.isEmpty()) {
@@ -392,7 +392,7 @@ public class EventServiceImpl implements EventService {
         List<Predicate> predicates = new ArrayList<>();
 
         if (users != null && !users.isEmpty()) {
-            predicates.add(root.get("initiator").in(users));
+            predicates.add(root.get("initiatorId").in(users));
         }
         if (states != null && !states.isEmpty()) {
             predicates.add(root.get("state").in(states));

@@ -67,7 +67,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
             EventFullDto event = fetchEvent(eventId);
 
-            if (event.getInitiator().equals(userId)) {
+            if (event.getInitiatorId().equals(userId)) {
                 throw new ConflictException("Владелец не может участвовать в собственном мероприятии.");
             }
 
@@ -107,7 +107,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             log.info("Просмотр заявок владельцем id={} для события id={}", userId, eventId);
             EventFullDto event = fetchEvent(eventId);
 
-            if (!event.getInitiator().equals(userId)) {
+            if (!event.getInitiatorId().equals(userId)) {
                 throw new ConflictException("Доступ запрещен: пользователь не является организатором.");
             }
 
@@ -119,7 +119,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public EventRequestStatusUpdateResult updateRequests(Long userId, Long eventId, EventRequestStatusUpdateRequest statusUpdateRequest) {
         EventFullDto eventFullDto = eventClient.getEvent(eventId);
 
-        if (!eventFullDto.getInitiator().equals(userId)) {
+        if (!eventFullDto.getInitiatorId().equals(userId)) {
             throw new ConflictException("Только инициатор события может обновлять статусы заявок.");
         }
 

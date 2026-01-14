@@ -33,7 +33,7 @@ public class EventFullDto {
             pattern = "yyyy-MM-dd HH:mm:ss"
     )
     private LocalDateTime eventDate;
-    private Long initiator;
+    private Long initiatorId;
     private LocationDto location;
     private Boolean paid;
     private Long participantLimit;
