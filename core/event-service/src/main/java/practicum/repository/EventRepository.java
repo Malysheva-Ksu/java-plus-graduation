@@ -20,7 +20,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "OR LOWER(e.description) LIKE LOWER(CONCAT('%', :text, '%')))) " +
             "AND (:categories IS NULL OR e.category.id IN :categories) " +
             "AND (:paid IS NULL OR e.paid = :paid) " +
-            "AND (e.state = 'PUBLISHED')")
+            "AND (e.state = practicum.model.enums.EventState.PUBLISHED)")
     List<Event> findByPublicFilters(@Param("text") String text,
                                     @Param("categories") List<Long> categories,
                                     @Param("paid") Boolean paid,

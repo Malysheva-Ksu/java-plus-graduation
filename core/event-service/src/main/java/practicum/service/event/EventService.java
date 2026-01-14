@@ -3,8 +3,6 @@ package practicum.service.event;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import practicum.model.dto.event.*;
-import practicum.model.dto.request.EventRequestStatusUpdateRequest;
-import practicum.model.dto.request.EventRequestStatusUpdateResult;
 import practicum.model.dto.request.ParticipationRequestDto;
 import practicum.model.enums.EventState;
 import practicum.model.enums.SortValue;

@@ -23,6 +23,7 @@ import practicum.mapper.EventMapper;
 import practicum.mapper.LocationMapper;
 import practicum.model.Category;
 import practicum.model.Event;
+import practicum.model.enums.EventState;
 import practicum.model.Location;
 import practicum.model.dto.event.*;
 import practicum.model.dto.location.LocationDto;
