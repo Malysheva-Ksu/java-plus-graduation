@@ -26,7 +26,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                     @Param("paid") Boolean paid,
                                     Pageable pageable);
 
-    List<Event> findAllByInitiator(Long initiatorId, Pageable pageable);
+    List<Event> findAllByInitiatorId(Long initiatorId, Pageable pageable);
 
     Optional<Event> findByIdAndInitiatorId(Long eventId, Long initiatorId);
 

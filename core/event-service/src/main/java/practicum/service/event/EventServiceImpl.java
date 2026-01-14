@@ -94,7 +94,7 @@ public class EventServiceImpl implements EventService {
         if (userDto.isEmpty()) throw new NotFoundException("Пользователь с ID=" + userId + " не найден.");
 
         Pageable page = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.findAllByInitiator(userId, page);
+        List<Event> events = eventRepository.findAllByInitiatorId(userId, page);
 
         return EventMapper.toEventShortDtoList(events);
     }
