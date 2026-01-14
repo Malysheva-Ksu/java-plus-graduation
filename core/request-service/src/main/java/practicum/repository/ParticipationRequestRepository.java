@@ -25,12 +25,12 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     List<ParticipationRequest> findAllByIdIn(List<Long> requestIds);
 
     @Query("""
-            SELECT r.event, COUNT(r.id)
-            FROM ParticipationRequest r
-            WHERE r.event IN :eventIds
-              AND r.status = 'CONFIRMED'
-            GROUP BY r.event
-            """)
+        SELECT r.event, COUNT(r.id)
+        FROM ParticipationRequest r
+        WHERE r.event IN :eventIds
+          AND r.status = practicum.model.enums.RequestStatus.CONFIRMED
+        GROUP BY r.event
+        """)
     List<Object[]> countConfirmedRequestsForEventsRaw(@Param("eventIds") Set<Long> eventIds);
 
     default Map<Long, Long> countConfirmedRequestsForEvents(Set<Long> eventIds) {
