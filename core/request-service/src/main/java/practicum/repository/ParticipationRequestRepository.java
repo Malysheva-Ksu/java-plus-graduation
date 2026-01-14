@@ -3,9 +3,7 @@ package practicum.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import practicum.model.Event;
 import practicum.model.ParticipationRequest;
-import practicum.model.User;
 import practicum.model.enums.RequestStatus;
 
 import java.util.*;
