@@ -11,8 +11,6 @@ import practicum.client.UserClient;
 import java.util.stream.Stream;
 
 @SpringBootApplication
-@EntityScan
-@EnableJpaRepositories
 @EnableFeignClients(clients = {
         UserClient.class,
         RequestClient.class
