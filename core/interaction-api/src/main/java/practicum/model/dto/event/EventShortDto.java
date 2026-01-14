@@ -24,10 +24,12 @@ public class EventShortDto {
             pattern = "yyyy-MM-dd HH:mm:ss"
     )
     private LocalDateTime eventDate;
-    private Long initiator;
+    private Long initiatorId;
+    private UserShortDto initiator;
     private Boolean paid;
     private String title;
     private Long views;
     private Long confirmedRequests;
     private Long participantLimit;
+    private Double rating;
 }

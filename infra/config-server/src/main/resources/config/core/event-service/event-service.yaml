@@ -13,26 +13,41 @@ spring:
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
-        show_sql: true
         format_sql: true
+        globally_quoted_identifiers: true
 
   jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
+    date-format: "yyyy-MM-dd HH:mm:ss"
     time-zone: UTC
 
 server:
   port: 0
 
+grpc:
+  client:
+    analyzer:
+      address: 'discovery:///analyzer'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+  server:
+    port: 0
+
 logging:
   level:
-    org.springframework.orm.jpa: INFO
-    org.springframework.transaction: INFO
-    org.springframework.transaction.interceptor: TRACE
-    org.springframework.orm.jpa.JpaTransactionManager: DEBUG
-    org.hibernate.sql: DEBUG
-    org.hibernate.type: TRACE
+    root: INFO
+    org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.orm.jpa: INFO
+    org.springframework.transaction.interceptor: TRACE

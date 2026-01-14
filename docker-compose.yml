@@ -1,39 +1,83 @@
 services:
-
   db:
     image: postgres:16.1
-    container_name: explore-with-me-db
-    ports:
-      - "5432:5432"
+    container_name: ewm-db
     environment:
+      POSTGRES_DB: ewm-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ewm-db"]
       interval: 5s
-      retries: 10
-    profiles: [ "main" ]
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
-  discovery-server:
-    image: discovery-server:latest
-    build:
-      context: ./infra/discovery-server
-      dockerfile: Dockerfile
-    ports:
-      - "8761:8761"
-      - "5005:5005"
+  user-service:
+    build: ./core/user-service
+    container_name: user-service
     depends_on:
       db:
         condition: service_healthy
     environment:
-      JAVA_OPTS: >
-        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 
-        -Duser.timezone=Europe/Moscow
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ewm-db
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    networks:
+      - app-network
+
+  event-service:
+    build: ./core/event-service
+    container_name: event-service
+    depends_on:
+      db:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ewm-db
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_JPA_SHOW_SQL: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    networks:
+      - app-network
+
+  request-service:
+    build: ./core/request-service
+    container_name: request-service
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ewm-db
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    networks:
+      - app-network
+
+  discovery-server:
+    build: ./infra/discovery-server
+    container_name: discovery-server
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 3
-    restart: unless-stopped
-    profiles: ["main"]
+      retries: 5
+    networks:
+      - app-network
+
+  config-server:
+    build: ./infra/config-server
+    container_name: config-server
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -32,4 +32,7 @@ public interface RequestClient {
     EventRequestStatusUpdateResult updateRequestStatus(@PathVariable("userId") Long userId,
                                                        @PathVariable("eventId") Long eventId,
                                                        @RequestBody EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest);
+
+    @PostMapping("{eventId}/participant/{userId}")
+    boolean isUserParticipant(@PathVariable Long userId, @PathVariable Long eventId);
 }

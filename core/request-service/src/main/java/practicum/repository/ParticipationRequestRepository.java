@@ -3,9 +3,7 @@ package practicum.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import practicum.model.Event;
 import practicum.model.ParticipationRequest;
-import practicum.model.User;
 import practicum.model.enums.RequestStatus;
 
 import java.util.*;
@@ -27,12 +25,12 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     List<ParticipationRequest> findAllByIdIn(List<Long> requestIds);
 
     @Query("""
-            SELECT r.event, COUNT(r.id)
-            FROM ParticipationRequest r
-            WHERE r.event IN :eventIds
-              AND r.status = 'CONFIRMED'
-            GROUP BY r.event
-            """)
+        SELECT r.event, COUNT(r.id)
+        FROM ParticipationRequest r
+        WHERE r.event IN :eventIds
+          AND r.status = practicum.model.enums.RequestStatus.CONFIRMED
+        GROUP BY r.event
+        """)
     List<Object[]> countConfirmedRequestsForEventsRaw(@Param("eventIds") Set<Long> eventIds);
 
     default Map<Long, Long> countConfirmedRequestsForEvents(Set<Long> eventIds) {
@@ -40,4 +38,16 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
         return countConfirmedRequestsForEventsRaw(eventIds).stream()
                 .collect(Collectors.toMap(obj -> (Long) obj[0], obj -> (Long) obj[1]));
     }
+
+    @Query("""
+            SELECT
+            CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END 
+            FROM ParticipationRequest r 
+            WHERE r.requester = :requesterId 
+            AND r.event = :eventId 
+            AND r.status = 'CONFIRMED'
+            """)
+    boolean isUserParticipant(Long requesterId, Long eventId);
+
+
 }

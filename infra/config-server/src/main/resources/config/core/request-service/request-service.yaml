@@ -1,6 +1,9 @@
 spring:
   application:
     name: request-service
+  sql:
+    init:
+      mode: always
 
   datasource:
     url: jdbc:postgresql://localhost:5432/ewm-db
@@ -11,14 +14,25 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
 
+grpc:
+  client:
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+  server:
+    port: 0
+
+
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
-        show_sql: true
-        format_sql: true
+        globally_quoted_identifiers: true
+        temp.use_jdbc_metadata_defaults: false
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss

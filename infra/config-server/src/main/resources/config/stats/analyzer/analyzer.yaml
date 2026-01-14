@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: analyzer
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/analyzer-db
+    username: postgres
+    password: "postgres"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+kafka:
+  bootstrap:
+    servers: localhost:9092
+  consumer:
+    group:
+      action: stats.analyzer.action
+      similarity: stats.analyzer.similarity
+    poll:
+      timeout: 100
+  topics:
+    stats-user-action-v1: stats.user-actions.v1
+    stats-events-similarity-v1: stats.events-similarity.v1
+
+grpc:
+  server:
+    port: 0
+
+logging:
+  level:
+    org.springframework.orm.jpa: INFO
+    org.springframework.transaction: INFO
+    org.springframework.transaction.interceptor: TRACE
+    org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    org.hibernate.sql: DEBUG
+    org.hibernate.type: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE

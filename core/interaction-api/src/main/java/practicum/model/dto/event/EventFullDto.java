@@ -1,12 +1,14 @@
 package practicum.model.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import practicum.model.dto.category.CategoryDto;
 import practicum.model.dto.location.LocationDto;
+import practicum.model.dto.user.UserShortDto;
 import practicum.model.enums.EventState;
 
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EventFullDto {
     private Long id;
     private String annotation;
@@ -33,7 +36,8 @@ public class EventFullDto {
             pattern = "yyyy-MM-dd HH:mm:ss"
     )
     private LocalDateTime eventDate;
-    private Long initiator;
+    private UserShortDto initiator;
+    private Long initiatorId;
     private LocationDto location;
     private Boolean paid;
     private Long participantLimit;
@@ -47,4 +51,5 @@ public class EventFullDto {
     private EventState state;
     private String title;
     private Long views;
+    private Double rating;
 }
