@@ -103,9 +103,10 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventByUser(Long userId, Long eventId) {
         Event event = findEventByIdAndInitiatorId(eventId, userId);
+        UserDto userDto = findUserById(userId).orElseThrow();
         long confirmedRequests = participationRequestClient.countEventsInStatus(eventId, RequestStatus.CONFIRMED);
 
-        return EventMapper.toFullEventDto(event, confirmedRequests);
+        return EventMapper.toFullEventDto(event, userDto, confirmedRequests);
     }
 
     private void updateEventFromAdminRequest(Event event, UpdateEventAdminRequest dto) {
@@ -475,6 +476,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional(readOnly = true)
     public EventFullDto getEvent(Long eventId, Long userId, HttpServletRequest request) {
+        UserDto userDto = findUserById(userId).orElseThrow();
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Опубликованное событие с ID=" + eventId + " не найдено."));
 
@@ -482,6 +484,6 @@ public class EventServiceImpl implements EventService {
 
         long confirmedRequests = participationRequestClient.countEventsInStatus(eventId, RequestStatus.CONFIRMED);
 
-        return EventMapper.toFullEventDto(event, confirmedRequests);
+        return EventMapper.toFullEventDto(event, userDto, confirmedRequests);
     }
 }

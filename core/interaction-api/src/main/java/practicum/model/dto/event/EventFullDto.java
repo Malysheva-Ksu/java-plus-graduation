@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import practicum.model.dto.category.CategoryDto;
 import practicum.model.dto.location.LocationDto;
+import practicum.model.dto.user.UserShortDto;
 import practicum.model.enums.EventState;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ public class EventFullDto {
             pattern = "yyyy-MM-dd HH:mm:ss"
     )
     private LocalDateTime eventDate;
+    private UserShortDto initiator;
     private Long initiatorId;
     private LocationDto location;
     private Boolean paid;

@@ -25,6 +25,7 @@ public class EventShortDto {
     )
     private LocalDateTime eventDate;
     private Long initiatorId;
+    private UserShortDto initiator;
     private Boolean paid;
     private String title;
     private Long views;
